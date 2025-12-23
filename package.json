@@ -1,0 +1,14 @@
+{
+  "name": "automind-auth",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "fetch-cookie": "^3.2.0",
+    "tough-cookie": "^4.1.4"
+  }
+}
