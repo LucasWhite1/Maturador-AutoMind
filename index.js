@@ -1,15 +1,14 @@
+const express = require('express');
 const fetchCookie = require('fetch-cookie').default;
 const { CookieJar } = require('tough-cookie');
-const dotenv = require("dotenv");
-// carregar variáveis do arquivo .env (se existir)
+const dotenv = require('dotenv');
+
 dotenv.config();
 
-const jar = new CookieJar();
+const app = express();
+app.use(express.json());
 
-// usa o fetch nativo do Node
-const fetchWithCookies = fetchCookie(fetch, jar);
-
-async function autenticar() {
+async function autenticar(fetchWithCookies) {
   const res = await fetchWithCookies(
     'https://webhook.automindhub.com.br/webhook/app/auth',
     {
@@ -24,21 +23,50 @@ async function autenticar() {
     }
   );
 
-  console.log('Auth status:', res.status);
+  if (!res.ok) {
+    throw new Error('Falha na autenticação');
+  }
 }
 
-async function getInstance() {
+async function getInstances(fetchWithCookies) {
   const res = await fetchWithCookies(
     'https://webhook.automindhub.com.br/webhook/api/get-instance'
   );
 
-  const data = await res.json();
-  console.log('Instance:', data);
+  if (!res.ok) {
+    throw new Error('Erro ao buscar instâncias');
+  }
+
+  return res.json();
 }
 
+/* =========================
+   ENDPOINT ÚNICO
+========================= */
 
+app.get('/instances', async (req, res) => {
+  try {
+    console.log('Recebida requisição para /instances');
+    // cookie isolado por request
+    const jar = new CookieJar();
+    const fetchWithCookies = fetchCookie(fetch, jar);
 
-(async () => {
-  await autenticar();
-  await getInstance();
-})();
+    await autenticar(fetchWithCookies);
+    const instances = await getInstances(fetchWithCookies);
+
+    return res.json(instances);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ erro: err.message });
+  }
+});
+
+/* =========================
+   START SERVER
+========================= */
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+});
