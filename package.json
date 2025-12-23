@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "dotenv": "^17.2.3",
+    "express": "^5.2.1",
     "fetch-cookie": "^3.2.0",
     "tough-cookie": "^4.1.4"
   }
